@@ -127,6 +127,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="setup-logo">💰</div>
     <div class="setup-title">Caio & Fernanda</div>
     <div class="setup-sub">Cole sua API key da Anthropic para ativar a inteligência do app. Ela fica salva só neste celular.</div>
+    <div class="setup-label">Quem é você?</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <button id="btnCaio" onclick="selectUser('Caio')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:.2s">👨 Caio</button>
+      <button id="btnFernanda" onclick="selectUser('Fernanda')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:.2s">👩 Fernanda</button>
+    </div>
     <div class="setup-label">API Key</div>
     <input class="setup-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" spellcheck="false">
     <button class="setup-btn" onclick="saveApiKey()"><i class="fas fa-unlock"></i> Entrar no app</button>
@@ -225,12 +230,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<div class="version">v2.1</div>
+<div class="version">v2.3</div>
 
 <script>
 const STORAGE_KEY='finapp_txs_v2';
 const NOTIF_KEY='finapp_notif_v1';
-const API_KEY_STORAGE='finapp_apikey_v1';
+const API_KEY_STORAGE="finapp_apikey_v1";
+const USER_KEY="finapp_user_v1";
 
 let transactions=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
 let isLoading=false;
@@ -244,6 +250,18 @@ function init(){
   }
 }
 
+function selectUser(name){
+  CURRENT_USER=name;
+  var btnC=document.getElementById("btnCaio");
+  var btnF=document.getElementById("btnFernanda");
+  btnC.style.background=name==="Caio"?"var(--accent)":"transparent";
+  btnC.style.color=name==="Caio"?"#fff":"var(--muted)";
+  btnC.style.borderColor=name==="Caio"?"var(--accent)":"var(--border)";
+  btnF.style.background=name==="Fernanda"?"var(--accent)":"transparent";
+  btnF.style.color=name==="Fernanda"?"#fff":"var(--muted)";
+  btnF.style.borderColor=name==="Fernanda"?"var(--accent)":"var(--border)";
+}
+
 function saveApiKey(){
   const val=document.getElementById('apiKeyInput').value.trim();
   const err=document.getElementById('setupErr');
@@ -251,6 +269,8 @@ function saveApiKey(){
   err.style.display='none';
   API_KEY=val;
   localStorage.setItem(API_KEY_STORAGE,val);
+  localStorage.setItem(USER_KEY,CURRENT_USER);
+  document.querySelector(".header-sub").textContent="Olá, "+CURRENT_USER+" 👋";
   document.getElementById('setupOverlay').style.display='none';
   scheduleNotifications();
 }
@@ -258,6 +278,7 @@ function saveApiKey(){
 function resetApiKey(){
   if(confirm('Trocar a API key?')){
     localStorage.removeItem(API_KEY_STORAGE);
+    localStorage.removeItem(USER_KEY);
     API_KEY='';
     document.getElementById('apiKeyInput').value='';
     document.getElementById('setupOverlay').style.display='flex';
@@ -326,9 +347,9 @@ async function sendMessage(){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-sonnet-4-5',
         max_tokens:1000,
-        system:'Você é um assistente financeiro familiar para Caio e Fernanda, um casal brasileiro.\nHoje é '+today+'.\n\nInterprete mensagens em linguagem natural e extraia transações financeiras.\n\nREGRAS:\n1. Se contém transação, responda SOMENTE JSON:\n{"transacao":{"valor":68.00,"tipo":"saida","descricao":"Barbearia","categoria":"Beleza & Cuidados","pessoa":"Caio","data":"2025-05-30","metodo":"dinheiro"}}\n\n2. Pessoa: Caio, Fernanda ou Família. Se não mencionada use Família.\n3. Tipo: "saida" para gastos, "entrada" para receitas/salário.\n4. Categorias: Alimentação, Transporte, Saúde, Educação, Lazer, Beleza & Cuidados, Moradia, Vestuário, Serviços, Salário, Freelance, Outros.\n5. Método: pix, dinheiro, cartão, débito ou desconhecido.\n6. Se NÃO for transação: {"mensagem":"texto curto","dica":"dica opcional"}\n7. Para consultas sobre saldo/totais, use: '+(txContext||'(sem transações ainda)')+'\n8. Tom: amigável, direto. Sem asteriscos ou markdown.',
+        system:'Você é um assistente financeiro familiar para Caio e Fernanda, um casal brasileiro.\nHoje é '+today+'.\n\nInterprete mensagens em linguagem natural e extraia transações financeiras.\n\nREGRAS:\n1. Se contém transação, responda SOMENTE JSON:\n{"transacao":{"valor":68.00,"tipo":"saida","descricao":"Barbearia","categoria":"Beleza & Cuidados","pessoa":"Caio","data":"2025-05-30","metodo":"dinheiro"}}\n\n2. Pessoa: Caio, Fernanda ou Família. Se não mencionada, use o usuário atual: '+CURRENT_USER+' (ou Família se for gasto conjunto).\n3. Tipo: "saida" para gastos, "entrada" para receitas/salário.\n4. Categorias: Alimentação, Transporte, Saúde, Educação, Lazer, Beleza & Cuidados, Moradia, Vestuário, Serviços, Salário, Freelance, Outros.\n5. Método: pix, dinheiro, cartão, débito ou desconhecido.\n6. Se NÃO for transação: {"mensagem":"texto curto","dica":"dica opcional"}\n7. Para consultas sobre saldo/totais, use: '+(txContext||'(sem transações ainda)')+'\n8. Tom: amigável, direto. Sem asteriscos ou markdown.',
         messages:[{role:'user',content:msg}]
       })
     });
