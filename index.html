@@ -230,7 +230,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<div class="version">v2.5</div>
+<div class="version">v2.6</div>
 
 <script>
 const STORAGE_KEY='finapp_txs_v2';
@@ -241,6 +241,7 @@ let CURRENT_USER=localStorage.getItem(USER_KEY)||"";
 
 let transactions=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
 let isLoading=false;
+let conversationHistory=[];
 let notifEnabled=localStorage.getItem(NOTIF_KEY)==='true';
 let API_KEY=localStorage.getItem(API_KEY_STORAGE)||'';
 
@@ -350,8 +351,8 @@ async function sendMessage(){
       body:JSON.stringify({
         model:'claude-sonnet-4-5',
         max_tokens:1000,
-        system:'Você é um assistente financeiro familiar para Caio e Fernanda, um casal brasileiro.\\nHoje é '+today+'. Usuário atual: '+CURRENT_USER+'.\\n\\nFLUXO: Ao receber uma transação, verifique se o MÉTODO DE PAGAMENTO foi informado (pix, dinheiro, cartão ou débito). Se não foi, pergunte antes de registrar. Para todo o resto (categoria, data, pessoa, tipo) infira pelo contexto sem perguntar.\\n\\nEXEMPLO DE FLUXO:\\nUsuário: gastei R$68 na barbearia\\nVocê: {\"pergunta\": \"Foi no pix, dinheiro, cartão ou débito? 💳\"}\\nUsuário: pix\\nVocê: {\"transacao\": {\"valor\": 68, \"tipo\": \"saida\", \"descricao\": \"Barbearia\", \"categoria\": \"Beleza & Cuidados\", \"pessoa\": \"Caio\", \"data\": \"2025-05-30\", \"metodo\": \"pix\"}}\\n\\nPADRÕES AUTOMÁTICOS (não perguntar):\\n- pessoa: '+CURRENT_USER+' se não mencionada, Família se gasto conjunto\\n- data: hoje se não mencionada\\n- tipo: saida para gastos, entrada para receitas/salário\\n- categoria: inferir pelo contexto. Opções: Alimentação, Transporte, Saúde, Educação, Lazer, Beleza & Cuidados, Moradia, Vestuário, Serviços, Salário, Freelance, Outros\\n\\nFORMATOS (sempre JSON válido, nunca texto puro):\\n{\"pergunta\": \"pergunta curta\"} — quando faltar método\\n{\"transacao\": {\"valor\":0,\"tipo\":\"\",\"descricao\":\"\",\"categoria\":\"\",\"pessoa\":\"\",\"data\":\"\",\"metodo\":\"\"}} — quando tiver tudo\\n{\"mensagem\": \"texto\", \"dica\": \"opcional\"} — para consultas ou mensagens não-financeiras\\n\\nCONTEXTO DE TRANSAÇÕES ANTERIORES:\\n'+(txContext||'(sem transações ainda)')+'\\n\\nTom: amigável, direto, sem asteriscos ou markdown.',
-        messages:[{role:'user',content:msg}]
+        system:'Você é um assistente financeiro familiar para Caio e Fernanda, um casal brasileiro.\\nHoje é '+today+'. Usuário atual: '+CURRENT_USER+'.\\n\\nFLUXO: Ao receber uma transação, verifique se o MÉTODO DE PAGAMENTO foi informado (pix, dinheiro, cartão ou débito). Se não foi, pergunte antes de registrar. Para todo o resto (categoria, data, pessoa, tipo) infira pelo contexto sem perguntar.\\n\\nEXEMPLO DE FLUXO:\\nUsuário: gastei R$68 na barbearia\\nVocê: {\"pergunta\": \"Foi no pix, dinheiro, cartão ou débito? 💳\"}\\nUsuário: pix\\nVocê: {\"transacao\": {\"valor\": 68, \"tipo\": \"saida\", \"descricao\": \"Barbearia\", \"categoria\": \"Beleza & Cuidados\", \"pessoa\": \"Caio\", \"data\": \"2025-05-30\", \"metodo\": \"pix\"}}\\n\\nPADRÕES AUTOMÁTICOS (não perguntar):\\n- pessoa: '+CURRENT_USER+' se não mencionada, Família se gasto conjunto\\n- data: hoje se não mencionada\\n- tipo: saida para gastos, entrada para receitas/salário\\n- categoria: inferir pelo contexto. Opções: Alimentação, Transporte, Saúde, Educação, Lazer, Beleza & Cuidados, Moradia, Vestuário, Serviços, Salário, Freelance, Outros\\n\\nFORMATOS (sempre JSON válido, nunca texto puro):\\n{\"pergunta\": \"pergunta curta\"} — quando faltar método\\n{\"transacao\": {\"valor\":0,\"tipo\":\"\",\"descricao\":\"\",\"categoria\":\"\",\"pessoa\":\"\",\"data\":\"\",\"metodo\":\"\",\"banco\":\"\"}} — quando tiver tudo\\n{\"mensagem\": \"texto\", \"dica\": \"opcional\"} — para consultas ou mensagens não-financeiras\\n\\nCONTEXTO DE TRANSAÇÕES ANTERIORES:\\n'+(txContext||'(sem transações ainda)')+'\\n\\nTom: amigável, direto, sem asteriscos ou markdown.',
+        messages:conversationHistory.slice(-10)
       })
     });
 
@@ -369,6 +370,9 @@ async function sendMessage(){
 
     hideTyping();
 
+    const rawReply=data.content&&data.content[0]?data.content[0].text:'{}';
+    conversationHistory.push({role:'assistant',content:rawReply});
+
     if(parsed.pergunta){
       appendMsg('ai', escHtml(parsed.pergunta));
     } else if(parsed.transacao){
@@ -383,7 +387,7 @@ async function sendMessage(){
               '<div style="font-weight:600;font-size:14px;margin-bottom:5px">'+escHtml(tx.descricao)+'</div>'+
               '<span class="tag cat">'+escHtml(tx.categoria)+'</span>'+
               '<span class="tag pessoa">'+escHtml(tx.pessoa)+'</span>'+
-              '<span class="tag tipo">'+escHtml(tx.metodo||'?')+'</span>'+
+              '<span class="tag tipo">'+escHtml(tx.metodo||'?')+(tx.banco?' · '+escHtml(tx.banco):'')+'</span>'+
             '</div>'+
             '<div class="tx-value '+(isS?'saida':'entrada')+'">'+fmt(tx.valor)+'</div>'+
           '</div>'+
@@ -558,7 +562,7 @@ function checkAndNotify(){
 
 function clearAll(){
   if(confirm('Apagar todas as transações? Não pode ser desfeito.')){
-    transactions=[];saveTxs();
+    transactions=[];conversationHistory=[];saveTxs();
     document.getElementById('tab-chat').innerHTML='<div class="msg ai"><div class="bubble">Histórico limpo! 🧹</div><div class="msg-time">'+nowTime()+'</div></div>';
   }
 }
