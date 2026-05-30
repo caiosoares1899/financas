@@ -230,13 +230,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<div class="version">v2.4</div>
+<div class="version">v2.5</div>
 
 <script>
 const STORAGE_KEY='finapp_txs_v2';
 const NOTIF_KEY='finapp_notif_v1';
 const API_KEY_STORAGE="finapp_apikey_v1";
 const USER_KEY="finapp_user_v1";
+let CURRENT_USER=localStorage.getItem(USER_KEY)||"";
 
 let transactions=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
 let isLoading=false;
