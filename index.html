@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--surface:#161921;--surface2:#1e2130;--border:#2a2e40;
+  --accent:#7c6af7;--accent2:#4fc3a1;--danger:#f56565;--warn:#f6a623;
+  --text:#e8eaf0;--muted:#8892a4;--radius:16px;
+  --font-display:'DM Serif Display',serif;--font-body:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;overflow:hidden}
+.shell{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;position:relative}
+.header{padding:16px 20px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#7c6af7,#4fc3a1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.header-info{flex:1}
+.header-title{font-family:var(--font-display);font-size:17px;color:var(--text)}
+.header-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.header-actions{display:flex;gap:8px}
+.icon-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:.2s}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:10px 4px;text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;letter-spacing:.3px}
+.tab.active{color:var(--accent);border-color:var(--accent)}
+.chat-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.chat-area::-webkit-scrollbar{width:4px}
+.chat-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.msg{display:flex;flex-direction:column;max-width:88%}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.ai{align-self:flex-start;align-items:flex-start}
+.bubble{padding:11px 14px;border-radius:var(--radius);font-size:13.5px;line-height:1.55}
+.msg.user .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.msg.ai .bubble{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg-time{font-size:10px;color:var(--muted);margin-top:3px;padding:0 2px}
+.typing{display:flex;gap:4px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);border-bottom-left-radius:4px;width:56px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bounce .8s infinite}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.tx-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:6px;font-size:12.5px}
+.tx-value.saida{color:var(--danger)}.tx-value.entrada{color:var(--accent2)}
+.tx-value{font-weight:600;font-size:15px}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;letter-spacing:.3px;margin-right:4px;margin-top:3px}
+.tag.cat{background:#7c6af720;color:#a89cf7;border:1px solid #7c6af740}
+.tag.pessoa{background:#4fc3a120;color:#4fc3a1;border:1px solid #4fc3a140}
+.tag.tipo{background:#f6a62320;color:#f6a623;border:1px solid #f6a62340}
+.input-area{padding:12px 16px 16px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.input-row{display:flex;gap:8px;align-items:flex-end}
+.msg-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text);font-family:var(--font-body);font-size:13.5px;resize:none;min-height:42px;max-height:100px;line-height:1.4;transition:.2s}
+.msg-input::placeholder{color:var(--muted)}.msg-input:focus{outline:none;border-color:var(--accent)}
+.send-btn{width:42px;height:42px;border-radius:12px;background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.send-btn:hover{background:#6b59e8}.send-btn:disabled{opacity:.5;cursor:default}
+.hint{font-size:10.5px;color:var(--muted);margin-top:6px;text-align:center}
+.dash-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.dash-area::-webkit-scrollbar{width:4px}
+.dash-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.report-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+.stat-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.stat-val{font-size:20px;font-weight:600;font-family:var(--font-display)}
+.stat-val.neg{color:var(--danger)}.stat-val.pos{color:var(--accent2)}.stat-val.neutral{color:var(--text)}
+.tx-list{display:flex;flex-direction:column;gap:8px}
+.tx-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center}
+.tx-desc{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.tx-meta{font-size:11px;color:var(--muted)}
+.tx-amount.neg{color:var(--danger)}.tx-amount.pos{color:var(--accent2)}
+.tx-amount{font-size:14px;font-weight:600}
+.delete-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px;opacity:.6;transition:.2s}
+.delete-btn:hover{color:var(--danger);opacity:1}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state i{font-size:40px;margin-bottom:12px;display:block;opacity:.4}
+.report-btn{width:100%;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;color:var(--text);font-family:var(--font-body);font-size:13.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:.2s}
+.report-btn:hover{background:var(--surface2);border-color:var(--accent)}
+.report-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.report-name{font-weight:600;margin-bottom:2px;font-size:13.5px}
+.report-desc{font-size:11.5px;color:var(--muted)}
+.notif-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:4px}
+.notif-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.notif-title{font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.notif-badge{padding:2px 10px;border-radius:20px;font-size:10.5px;font-weight:600}
+.notif-badge.on{background:#4fc3a120;color:#4fc3a1;border:1px solid #4fc3a140}
+.notif-badge.off{background:#f6565620;color:#f65656;border:1px solid #f6565640}
+.notif-badge.pwa{background:#f6a62320;color:#f6a623;border:1px solid #f6a62340}
+.notif-schedule{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.schedule-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-radius:10px;font-size:12.5px}
+.schedule-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.schedule-info{flex:1}
+.schedule-label{font-weight:500;color:var(--text)}
+.schedule-when{font-size:11px;color:var(--muted);margin-top:1px}
+.schedule-status{font-size:10px;padding:2px 7px;border-radius:10px}
+.schedule-status.ok{background:#4fc3a115;color:#4fc3a1}
+.schedule-status.off{background:#88924415;color:var(--muted)}
+.pwa-guide{background:var(--surface);border:1px solid #f6a62340;border-radius:14px;padding:14px;margin-top:4px}
+.pwa-title{font-size:12.5px;font-weight:600;color:var(--warn);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.pwa-steps{display:flex;flex-direction:column;gap:7px}
+.pwa-step{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);line-height:1.5}
+.step-num{width:18px;height:18px;border-radius:50%;background:#f6a62320;color:#f6a623;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.version{position:fixed;bottom:4px;right:8px;font-size:9px;color:var(--border);pointer-events:none;z-index:99}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="header">
+    <div class="logo">💰</div>
+    <div class="header-info">
+      <div class="header-title">Caio & Fernanda</div>
+      <div class="header-sub">Finanças familiares</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="clearAll()" title="Limpar tudo"><i class="fas fa-trash-alt"></i></button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('chat')">💬 Chat</div>
+    <div class="tab" onclick="switchTab('dash')">📊 Extrato</div>
+    <div class="tab" onclick="switchTab('reports')">📄 Relatórios</div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="tab-chat" class="chat-area">
+    <div class="msg ai">
+      <div class="bubble">Olá! 👋 Sou o assistente financeiro de vocês. Me conta seus gastos e receitas em linguagem natural.<br><br>Exemplos:<br>• <em>"R$68 na barbearia hoje"</em><br>• <em>"Fernanda pagou R$250 no mercado"</em><br>• <em>"Recebi salário R$3.500"</em><br>• <em>"Gasolina R$120 ontem Caio"</em></div>
+      <div class="msg-time">agora</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="tab-dash" class="dash-area" style="display:none">
+    <div id="dash-content"></div>
+  </div>
+
+  <!-- REPORTS -->
+  <div id="tab-reports" class="report-area" style="display:none">
+
+    <div class="section-title">Exportar relatório</div>
+
+    <button class="report-btn" onclick="exportReport('week')">
+      <div class="report-icon" style="background:#7c6af720"><i class="fas fa-calendar-week" style="color:#a89cf7"></i></div>
+      <div>
+        <div class="report-name">Relatório Semanal</div>
+        <div class="report-desc">Últimos 7 dias · baixa CSV agora</div>
+      </div>
+    </button>
+
+    <button class="report-btn" onclick="exportReport('month')">
+      <div class="report-icon" style="background:#4fc3a120"><i class="fas fa-calendar-alt" style="color:#4fc3a1"></i></div>
+      <div>
+        <div class="report-name">Relatório Mensal</div>
+        <div class="report-desc">Mês atual · baixa CSV agora</div>
+      </div>
+    </button>
+
+    <button class="report-btn" onclick="exportReport('all')">
+      <div class="report-icon" style="background:#f6a62320"><i class="fas fa-download" style="color:#f6a623"></i></div>
+      <div>
+        <div class="report-name">Exportar Tudo</div>
+        <div class="report-desc">Todo o histórico · baixa CSV agora</div>
+      </div>
+    </button>
+
+    <div class="section-title" style="margin-top:8px">Lembretes de exportação</div>
+
+    <div class="notif-card">
+      <div class="notif-header">
+        <div class="notif-title"><i class="fas fa-bell" style="color:var(--accent)"></i> Notificações</div>
+        <div id="notifBadge" class="notif-badge off">desativado</div>
+      </div>
+      <div class="notif-schedule">
+        <div class="schedule-item">
+          <div class="schedule-icon">📅</div>
+          <div class="schedule-info">
+            <div class="schedule-label">Relatório Semanal</div>
+            <div class="schedule-when">Toda segunda-feira às 08:00</div>
+          </div>
+          <div class="schedule-status off" id="status-week">inativo</div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-icon">📆</div>
+          <div class="schedule-info">
+            <div class="schedule-label">Relatório Mensal</div>
+            <div class="schedule-when">Todo dia 05 às 08:00</div>
+          </div>
+          <div class="schedule-status off" id="status-month">inativo</div>
+        </div>
+      </div>
+      <button id="notifToggleBtn" onclick="toggleNotifications()" style="width:100%;margin-top:14px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--accent);color:#fff;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:.2s">
+        <i class="fas fa-bell"></i> Ativar lembretes
+      </button>
+      <div id="notifMsg" style="font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center;display:none"></div>
+    </div>
+
+    <div class="pwa-guide">
+      <div class="pwa-title"><i class="fas fa-mobile-alt"></i> Instale como app no iPhone para os lembretes funcionarem</div>
+      <div class="pwa-steps">
+        <div class="pwa-step"><div class="step-num">1</div><span>Abra este arquivo no <strong style="color:var(--text)">Safari</strong> (não Chrome/Firefox)</span></div>
+        <div class="pwa-step"><div class="step-num">2</div><span>Toque no ícone de compartilhar <strong style="color:var(--text)">⬆️</strong> na barra inferior</span></div>
+        <div class="pwa-step"><div class="step-num">3</div><span>Role e toque em <strong style="color:var(--text)">"Adicionar à Tela de Início"</strong></span></div>
+        <div class="pwa-step"><div class="step-num">4</div><span>Abra sempre pelo ícone na tela inicial (não pelo Safari)</span></div>
+        <div class="pwa-step"><div class="step-num">5</div><span>Volte aqui e ative os lembretes — iOS 16.4+ suporta notificações de PWA</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INPUT -->
+  <div id="input-section" class="input-area">
+    <div class="input-row">
+      <textarea class="msg-input" id="msgInput" placeholder="Ex: R$68 barbearia hoje..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+    <div class="hint">IA interpreta gastos, receitas e transferências automaticamente</div>
+  </div>
+</div>
+
+<div class="version">v2.0</div>
+
+<script>
+const STORAGE_KEY='finapp_txs_v2';
+const NOTIF_KEY='finapp_notif_v1';
+let transactions=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+let isLoading=false;
+let notifEnabled=localStorage.getItem(NOTIF_KEY)==='true';
+
+function saveTxs(){localStorage.setItem(STORAGE_KEY,JSON.stringify(transactions))}
+function fmt(v){return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtDate(d){return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})}
+function nowTime(){return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function switchTab(t){
+  ['chat','dash','reports'].forEach((id,i)=>{
+    document.getElementById('tab-'+id).style.display='none';
+    document.querySelectorAll('.tab')[i].classList.remove('active');
+  });
+  document.getElementById('tab-'+t).style.display='flex';
+  document.getElementById('tab-'+t).style.flexDirection='column';
+  document.querySelectorAll('.tab')[['chat','dash','reports'].indexOf(t)].classList.add('active');
+  document.getElementById('input-section').style.display=t==='chat'?'block':'none';
+  if(t==='dash')renderDash();
+  if(t==='reports')updateNotifUI();
+}
+
+function appendMsg(role,html){
+  const chat=document.getElementById('tab-chat');
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  d.innerHTML='<div class="bubble">'+html+'</div><div class="msg-time">'+nowTime()+'</div>';
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function showTyping(){
+  const chat=document.getElementById('tab-chat');
+  const d=document.createElement('div');
+  d.className='msg ai';d.id='typing-indicator';
+  d.innerHTML='<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+}
+function hideTyping(){const e=document.getElementById('typing-indicator');if(e)e.remove()}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px'}
+
+async function sendMessage(){
+  const inp=document.getElementById('msgInput');
+  const msg=inp.value.trim();
+  if(!msg||isLoading)return;
+  inp.value='';inp.style.height='auto';
+  isLoading=true;
+  document.getElementById('sendBtn').disabled=true;
+  appendMsg('user',escHtml(msg));
+  showTyping();
+
+  const txContext=transactions.slice(-20).map(t=>'['+fmtDate(t.data)+'] '+t.tipo+' R$'+t.valor+' - '+t.descricao+' ('+t.categoria+', '+t.pessoa+')').join('\n');
+  const today=new Date().toLocaleDateString('pt-BR');
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:'Você é um assistente financeiro familiar para Caio e Fernanda, um casal brasileiro.\nHoje é '+today+'.\n\nInterprete mensagens em linguagem natural e extraia transações financeiras.\n\nREGRAS:\n1. Se contém transação, responda SOMENTE JSON:\n{"transacao":{"valor":68.00,"tipo":"saida","descricao":"Barbearia","categoria":"Beleza & Cuidados","pessoa":"Caio","data":"2025-05-30","metodo":"dinheiro"}}\n\n2. Pessoa: Caio, Fernanda ou Família. Se não mencionada use Família.\n3. Tipo: "saida" para gastos, "entrada" para receitas/salário.\n4. Categorias: Alimentação, Transporte, Saúde, Educação, Lazer, Beleza & Cuidados, Moradia, Vestuário, Serviços, Salário, Freelance, Outros.\n5. Método: pix, dinheiro, cartão, débito ou desconhecido.\n6. Se NÃO for transação: {"mensagem":"texto curto","dica":"dica opcional"}\n7. Para consultas sobre saldo/totais, use: '+( txContext||'(sem transações ainda)')+'\n8. Tom: amigável, direto. Sem asteriscos ou markdown.',
+        messages:[{role:'user',content:msg}]
+      })
+    });
+
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'{}';
+    let parsed;
+    try{parsed=JSON.parse(text.replace(/```json|```/g,'').trim())}
+    catch{parsed={mensagem:text.slice(0,200)}}
+
+    hideTyping();
+
+    if(parsed.transacao){
+      const tx=Object.assign({},parsed.transacao,{id:Date.now()});
+      transactions.push(tx);saveTxs();
+      const isS=tx.tipo==='saida';
+      appendMsg('ai',
+        '<div style="margin-bottom:4px">'+(isS?'💸':'💚')+' Registrado!</div>'+
+        '<div class="tx-card">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+            '<div>'+
+              '<div style="font-weight:600;font-size:14px;margin-bottom:5px">'+escHtml(tx.descricao)+'</div>'+
+              '<span class="tag cat">'+escHtml(tx.categoria)+'</span>'+
+              '<span class="tag pessoa">'+escHtml(tx.pessoa)+'</span>'+
+              '<span class="tag tipo">'+escHtml(tx.metodo||'?')+'</span>'+
+            '</div>'+
+            '<div class="tx-value '+(isS?'saida':'entrada')+'">'+fmt(tx.valor)+'</div>'+
+          '</div>'+
+          '<div style="font-size:11px;color:var(--muted);margin-top:8px">📅 '+fmtDate(tx.data)+'</div>'+
+        '</div>');
+    } else if(parsed.mensagem){
+      let html=escHtml(parsed.mensagem);
+      if(parsed.dica)html+='<div style="margin-top:8px;padding:8px 10px;background:#7c6af710;border-radius:8px;font-size:12px;color:var(--muted)">💡 '+escHtml(parsed.dica)+'</div>';
+      appendMsg('ai',html);
+    } else {
+      appendMsg('ai','Não consegui interpretar. Tente: "R$50 pizza Fernanda" 🍕');
+    }
+  }catch(err){
+    hideTyping();
+    appendMsg('ai','Erro de conexão com a IA 😕 Tente novamente.');
+    console.error(err);
+  }
+  isLoading=false;
+  document.getElementById('sendBtn').disabled=false;
+}
+
+function renderDash(){
+  const now=new Date();
+  const ms=now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0');
+  const monthTx=transactions.filter(function(t){return t.data&&t.data.startsWith(ms)});
+  const totalS=monthTx.filter(function(t){return t.tipo==='saida'}).reduce(function(a,t){return a+parseFloat(t.valor||0)},0);
+  const totalE=monthTx.filter(function(t){return t.tipo==='entrada'}).reduce(function(a,t){return a+parseFloat(t.valor||0)},0);
+  const saldo=totalE-totalS;
+
+  const cats={};
+  monthTx.filter(function(t){return t.tipo==='saida'}).forEach(function(t){cats[t.categoria]=(cats[t.categoria]||0)+parseFloat(t.valor||0)});
+  const topCats=Object.entries(cats).sort(function(a,b){return b[1]-a[1]}).slice(0,4);
+  const sorted=transactions.slice().sort(function(a,b){return new Date(b.data)-new Date(a.data)}).slice(0,30);
+
+  let html=
+    '<div class="section-title">'+now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})+'</div>'+
+    '<div class="stat-grid">'+
+      '<div class="stat-card"><div class="stat-label">Receitas</div><div class="stat-val pos">'+fmt(totalE)+'</div></div>'+
+      '<div class="stat-card"><div class="stat-label">Gastos</div><div class="stat-val neg">'+fmt(totalS)+'</div></div>'+
+      '<div class="stat-card"><div class="stat-label">Saldo</div><div class="stat-val '+(saldo>=0?'pos':'neg')+'">'+fmt(saldo)+'</div></div>'+
+      '<div class="stat-card"><div class="stat-label">Lançamentos</div><div class="stat-val neutral">'+monthTx.length+'</div></div>'+
+    '</div>';
+
+  if(topCats.length){
+    const maxV=topCats[0][1];
+    html+='<div class="section-title" style="margin-top:4px">Top categorias</div>';
+    topCats.forEach(function(entry){
+      const cat=entry[0],val=entry[1];
+      const pct=Math.round((val/maxV)*100);
+      html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:6px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span>'+escHtml(cat)+'</span><span style="color:var(--danger);font-weight:600">'+fmt(val)+'</span></div>'+
+        '<div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;width:'+pct+'%;background:var(--accent);border-radius:2px;transition:.4s"></div></div>'+
+      '</div>';
+    });
+  }
+
+  if(sorted.length){
+    html+='<div class="section-title" style="margin-top:4px">Últimas transações</div><div class="tx-list">';
+    sorted.forEach(function(t){
+      const isS=t.tipo==='saida';
+      html+='<div class="tx-item">'+
+        '<div>'+
+          '<div class="tx-desc">'+escHtml(t.descricao)+'</div>'+
+          '<div class="tx-meta">'+fmtDate(t.data)+' · '+escHtml(t.pessoa)+' · '+escHtml(t.categoria)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<div class="tx-amount '+(isS?'neg':'pos')+'">'+(isS?'−':'+')+fmt(t.valor)+'</div>'+
+          '<button class="delete-btn" onclick="deleteTx('+t.id+')"><i class="fas fa-times"></i></button>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  } else {
+    html+='<div class="empty-state"><i class="fas fa-coins"></i>Nenhuma transação ainda.<br>Use o chat para registrar!</div>';
+  }
+
+  document.getElementById('dash-content').innerHTML=html;
+}
+
+function deleteTx(id){
+  transactions=transactions.filter(function(t){return t.id!==id});
+  saveTxs();renderDash();
+}
+
+function exportReport(period){
+  const now=new Date();
+  let filtered=transactions,label='completo';
+  if(period==='week'){
+    const cut=new Date(now);cut.setDate(cut.getDate()-7);
+    filtered=transactions.filter(function(t){return new Date(t.data)>=cut});
+    label='semanal';
+  } else if(period==='month'){
+    const ms=now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0');
+    filtered=transactions.filter(function(t){return t.data&&t.data.startsWith(ms)});
+    label='mensal';
+  }
+  if(!filtered.length){alert('Nenhuma transação no período.');return}
+  const totalE=filtered.filter(function(t){return t.tipo==='entrada'}).reduce(function(a,t){return a+parseFloat(t.valor||0)},0);
+  const totalS=filtered.filter(function(t){return t.tipo==='saida'}).reduce(function(a,t){return a+parseFloat(t.valor||0)},0);
+  let csv='Data,Descrição,Tipo,Valor (R$),Categoria,Pessoa,Método\n';
+  filtered.forEach(function(t){
+    csv+=fmtDate(t.data)+',"'+(t.descricao||'').replace(/"/g,'""')+'",'+(t.tipo==='saida'?'Saída':'Entrada')+','+parseFloat(t.valor||0).toFixed(2)+',"'+(t.categoria||'').replace(/"/g,'""')+'",'+( t.pessoa||'')+','+(t.metodo||'')+'\n';
+  });
+  csv+='\n,,Total Entradas,'+totalE.toFixed(2)+'\n,,Total Saídas,'+totalS.toFixed(2)+'\n,,Saldo,'+(totalE-totalS).toFixed(2)+'\n';
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='financas-'+label+'-'+now.toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function updateNotifUI(){
+  const badge=document.getElementById('notifBadge');
+  const btn=document.getElementById('notifToggleBtn');
+  const msgEl=document.getElementById('notifMsg');
+  const sw=document.getElementById('status-week');
+  const sm=document.getElementById('status-month');
+  const supported='Notification' in window;
+
+  if(!supported){
+    badge.textContent='não suportado';badge.className='notif-badge pwa';
+    btn.style.background='var(--border)';btn.textContent='Notificações não suportadas neste navegador';
+    btn.disabled=true;
+    msgEl.style.display='block';
+    msgEl.textContent='Use o Safari no iOS 16.4+ e instale como PWA (veja instruções abaixo).';
+    return;
+  }
+
+  const perm=Notification.permission;
+  if(notifEnabled&&perm==='granted'){
+    badge.textContent='ativo';badge.className='notif-badge on';
+    btn.style.background='var(--danger)';btn.innerHTML='<i class="fas fa-bell-slash"></i> Desativar lembretes';
+    sw.textContent='ativo';sw.className='schedule-status ok';
+    sm.textContent='ativo';sm.className='schedule-status ok';
+    msgEl.style.display='block';msgEl.textContent='✅ Lembretes agendados. Deixe o app na tela de início.';
+  } else if(perm==='denied'){
+    badge.textContent='bloqueado';badge.className='notif-badge pwa';
+    btn.style.background='var(--border)';btn.textContent='Permissão bloqueada — libere nas configurações do iOS';
+    btn.disabled=true;
+    msgEl.style.display='block';msgEl.textContent='Vá em Ajustes > Safari > Notificações e permita este site.';
+  } else {
+    badge.textContent='desativado';badge.className='notif-badge off';
+    btn.style.background='var(--accent)';btn.innerHTML='<i class="fas fa-bell"></i> Ativar lembretes';
+    btn.disabled=false;
+    sw.textContent='inativo';sw.className='schedule-status off';
+    sm.textContent='inativo';sm.className='schedule-status off';
+    msgEl.style.display='none';
+  }
+}
+
+async function toggleNotifications(){
+  if(!('Notification' in window))return;
+  if(notifEnabled&&Notification.permission==='granted'){
+    notifEnabled=false;
+    localStorage.setItem(NOTIF_KEY,'false');
+    updateNotifUI();return;
+  }
+  const perm=await Notification.requestPermission();
+  if(perm==='granted'){
+    notifEnabled=true;
+    localStorage.setItem(NOTIF_KEY,'true');
+    scheduleNotifications();
+    new Notification('💰 Caio & Fernanda Finanças',{body:'Lembretes ativados! Toda segunda e dia 05 você recebe um aviso.'});
+    updateNotifUI();
+  } else {
+    updateNotifUI();
+  }
+}
+
+function scheduleNotifications(){
+  if(!notifEnabled||Notification.permission!=='granted')return;
+  checkAndNotify();
+  setInterval(checkAndNotify,60*60*1000);
+}
+
+function checkAndNotify(){
+  if(!notifEnabled||Notification.permission!=='granted')return;
+  const now=new Date();
+  const h=now.getHours();
+  const dow=now.getDay();
+  const dom=now.getDate();
+  const todayKey=now.toISOString().slice(0,10);
+  const lastNotif=localStorage.getItem('finapp_last_notif');
+  if(lastNotif===todayKey)return;
+  if(h>=8&&h<10){
+    if(dow===1){
+      new Notification('📅 Relatório Semanal',{body:'Hora de exportar o relatório da semana! Abra o app e baixe o CSV.'});
+      localStorage.setItem('finapp_last_notif',todayKey);
+    } else if(dom===5){
+      new Notification('📆 Relatório Mensal',{body:'É dia 05! Exporte o relatório mensal para acompanhar as finanças.'});
+      localStorage.setItem('finapp_last_notif',todayKey);
+    }
+  }
+}
+
+function clearAll(){
+  if(confirm('Apagar todas as transações? Não pode ser desfeito.')){
+    transactions=[];saveTxs();
+    document.getElementById('tab-chat').innerHTML='<div class="msg ai"><div class="bubble">Histórico limpo! 🧹 Pode começar novamente.</div><div class="msg-time">'+nowTime()+'</div></div>';
+  }
+}
+
+scheduleNotifications();
+</script>
+</body>
+</html>
